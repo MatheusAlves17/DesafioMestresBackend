@@ -1,6 +1,11 @@
 import { Router } from "express";
+import multer from "multer";
+import multerConfig from './multer';
+
 const database = require('./database')
 const moviesModule = Router()
+
+const upload = multer(multerConfig);
 
 // Selecionar todos os filmes
 moviesModule.get('/', (req, res) => {
@@ -16,8 +21,10 @@ moviesModule.get('/', (req, res) => {
 })
 
 // Inserir novo filme
-moviesModule.post('/', (req, res) => {
+moviesModule.post('/', upload.single('fil_poster'), (req, res) => {
     const movies = req.body
+    const poster = req.file?.filename;
+    movies.fil_poster = poster
     database
     .insert(movies)
     .into('filmes')
@@ -57,6 +64,7 @@ moviesModule.get('/genero', (req, res) => {
     })
 })
 
+// Selecionar um filme com determinada quatidade de registros
 moviesModule.get('/paginacao', (req, res) => {
     const qtdItems = req.body.qtdItems
     database
@@ -72,7 +80,6 @@ moviesModule.get('/paginacao', (req, res) => {
 })
 
 // Atualizar um filme pelo id
-
 moviesModule.put('/:id', (req, res) => {
     const fil_id = req.params.id;
     const filme = req.body
@@ -88,6 +95,7 @@ moviesModule.put('/:id', (req, res) => {
     })
 })
 
+// Excluir um filme pelo id
 moviesModule.delete('/:id', (req, res) => {
     const fil_id = req.params.id 
     database
@@ -101,5 +109,6 @@ moviesModule.delete('/:id', (req, res) => {
         res.json({message: "Falha ao excluir um filme", erro: err})
     })
 })
+
 
 export default moviesModule;
