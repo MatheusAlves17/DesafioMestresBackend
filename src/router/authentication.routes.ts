@@ -1,5 +1,5 @@
 import { Router } from 'express';
-let database = require('./database')
+const database = require('./database')
 const authenticationModule = Router()
 
 // Selecionar todos os usuários
