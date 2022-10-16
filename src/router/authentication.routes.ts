@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { sign } from 'jsonwebtoken';
+import authConfig from '../../src/auth'
 const bcrypt = require('bcryptjs');
 const database = require('./database')
 const authenticationModule = Router()
@@ -81,18 +82,17 @@ authenticationModule.post('/login', async (req: any, res: any) => {
     .table('usuarios')
     .then((data: any) => {
         if(!data){
-            res.status(400).json({message: "Credenciais inválidas 1"})
+            res.status(400).json({message: "Credenciais inválidas"})
         }
         const compareSenha = bcrypt.compareSync(usu_senha, data[0].usu_senha)                    
         if(!compareSenha){
-            res.status(400).json({message: "Credenciais inválidas 2"})
+            res.status(400).json({message: "Credenciais inválidas"})
         }
         else if(compareSenha){
-            const token = sign({},'4b0017d7f35bec229e8fa6ffcf70a97e',{
+            const token = sign({},authConfig.jwt.secret,{
                 subject: String(data[0].usu_id),
-                expiresIn: '1d'
+                expiresIn: authConfig.jwt.expiredIn
             })
-            
             res.json({usuario: data[0], token: token})
         }
     })

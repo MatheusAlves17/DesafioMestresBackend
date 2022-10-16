@@ -1,11 +1,14 @@
 import { Router } from "express";
 import multer from "multer";
 import multerConfig from './multer';
+import isAuthenticated from '../middlewares/isAuthenticated'
 
 const database = require('./database')
 const moviesModule = Router()
 
 const upload = multer(multerConfig);
+
+moviesModule.use(isAuthenticated)
 
 // Selecionar todos os filmes
 moviesModule.get('/', (req, res) => {
