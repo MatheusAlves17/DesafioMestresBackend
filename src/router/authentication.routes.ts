@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { sign } from 'jsonwebtoken';
+const bcrypt = require('bcryptjs');
 const database = require('./database')
 const authenticationModule = Router()
 
@@ -16,6 +18,12 @@ authenticationModule.get('/', (req, res) => {
 // Inserir um usuário
 authenticationModule.post('/', async (req, res) => {
     const usuario = req.body
+
+    const salt = bcrypt.genSaltSync(10);
+    const senhaCriptografada = bcrypt.hashSync(usuario.usu_senha, salt)
+    
+    usuario.usu_senha = senhaCriptografada
+    
     database.insert(usuario).into('usuarios')
     .then((data: any) => res.json({message: 'Usuário inserido com sucesso!', data: data}))
     .catch((err: any) => res.json({message: 'Falha ao inserir usuário', erro: err}));
@@ -64,5 +72,33 @@ authenticationModule.put('/:id', (req, res) => {
     })
 })
 
+authenticationModule.post('/login', async (req: any, res: any) => {
+    
+    const {usu_email, usu_senha} = req.body
+    
+    database
+    .where({usu_email: usu_email})
+    .table('usuarios')
+    .then((data: any) => {
+        if(!data){
+            res.status(400).json({message: "Credenciais inválidas 1"})
+        }
+        const compareSenha = bcrypt.compareSync(usu_senha, data[0].usu_senha)                    
+        if(!compareSenha){
+            res.status(400).json({message: "Credenciais inválidas 2"})
+        }
+        else if(compareSenha){
+            const token = sign({},'4b0017d7f35bec229e8fa6ffcf70a97e',{
+                subject: String(data[0].usu_id),
+                expiresIn: '1d'
+            })
+            
+            res.json({usuario: data[0], token: token})
+        }
+    })
+    .catch((err: any) => {
+        res.json({erro: err})
+    })
+})
 
 export default authenticationModule
