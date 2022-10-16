@@ -57,6 +57,20 @@ moviesModule.get('/genero', (req, res) => {
     })
 })
 
+moviesModule.get('/paginacao', (req, res) => {
+    const qtdItems = req.body.qtdItems
+    database
+    .select('*')
+    .limit(qtdItems)
+    .table('filmes')
+    .then((data: any) => {
+        res.json({message: "Itens encontrados", filmes: data})
+    })
+    .catch((err: any) => {
+        res.json({message: "Falha ao encontrar filmes", erro: err})
+    })
+})
+
 // Atualizar um filme pelo id
 
 moviesModule.put('/:id', (req, res) => {
